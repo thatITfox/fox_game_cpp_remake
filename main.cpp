@@ -25,13 +25,18 @@ int main(int argc, char* argv[])
     // load the fox and blueberry images
     SDL_Surface* fox = IMG_Load("images/fox.png");
     SDL_Surface* blueberry = IMG_Load("images/blueberry.png");
-    // check if the image loaded correctly
-    if (surface == NULL)
-    {
-        std::cout << "Error: " << IMG_GetError() << std::endl;
+
+    // check if the images loaded correctly
+    if (surface == NULL) {
+        std::cout << "Error loading background image" << std::endl;
         return 1;
     }
+    // turn the surfaces into textures
+    SDL_Texture* foxTexture = SDL_CreateTextureFromSurface(renderer, fox);
 
+    SDL_Texture* background = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_Texture* blueberry_texture = SDL_CreateTextureFromSurface(renderer, blueberry);
     bool running = true;
     while(running)
     {
@@ -46,10 +51,10 @@ int main(int argc, char* argv[])
                 switch(event.key.keysym.sym)
                 {
                     case SDLK_LEFT:
-                        player_speed = -1;
+                        player_speed = -3;
                         break;
                     case SDLK_RIGHT:
-                        player_speed = 1;
+                        player_speed = 3;
                         break;
                 }
             }
@@ -58,13 +63,13 @@ int main(int argc, char* argv[])
                 switch(event.key.keysym.sym)
                 {
                     case SDLK_LEFT:
-                        if(player_speed == -1)
+                        if(player_speed == -3)
                         {
                             player_speed = 0;
                         }
                         break;
                     case SDLK_RIGHT:
-                        if(player_speed == 1)
+                        if(player_speed == 3)
                         {
                             player_speed = 0;
                         }
@@ -76,18 +81,14 @@ int main(int argc, char* argv[])
         SDL_RenderClear(renderer);
 
         // render the background image
-        SDL_Texture* background = SDL_CreateTextureFromSurface(renderer, surface);
         SDL_RenderCopy(renderer, background, NULL, NULL);
 
         // render the blueberry based on its x and y coordinates
         SDL_Rect blueberry_rect = {blueberry_x, blueberry_y, blueberry->w, blueberry->h};
-        SDL_Texture* blueberry_texture = SDL_CreateTextureFromSurface(renderer, blueberry);
         SDL_RenderCopy(renderer, blueberry_texture, NULL, &blueberry_rect);
 
-        // render the fox image in the middle of the screen
-        // SDL_Rect foxRect = {WIDTH/2 - fox->w/2, HEIGHT/2 - fox->h/2, fox->w, fox->h};
+        // render the fox image
         SDL_Rect foxRect = {fox_x, fox_y, fox->w, fox->h};
-        SDL_Texture* foxTexture = SDL_CreateTextureFromSurface(renderer, fox);
         SDL_RenderCopy(renderer, foxTexture, NULL, &foxRect);
 
         fox_x += player_speed;
@@ -99,13 +100,14 @@ int main(int argc, char* argv[])
         {
             fox_x = WIDTH - fox->w;
         }
-        blueberry_y += 1;
         if (blueberry_y > HEIGHT)
         {
             blueberry_x = rand() % WIDTH;
             blueberry_y = 0;
         }
 
+        // update the blueberry's y coordinate
+        blueberry_y += 2;
 
         if(GetDistance(fox_x, fox_y, blueberry_x, blueberry_y) < fox->w/2 + blueberry->w/2)
         {
@@ -113,12 +115,13 @@ int main(int argc, char* argv[])
             blueberry_y = 0;
         }
         SDL_RenderPresent(renderer);
-
-        // clean up the texture so it doesn't leak memory
-        SDL_DestroyTexture(background);
-        SDL_DestroyTexture(foxTexture);
-        SDL_DestroyTexture(blueberry_texture);
+        SDL_Delay(5);
     }
+
+    // clean up the texture so it doesn't leak memory
+    SDL_DestroyTexture(background);
+    SDL_DestroyTexture(foxTexture);
+    SDL_DestroyTexture(blueberry_texture);
 
     // clean up all the surfaces
     SDL_FreeSurface(surface);
